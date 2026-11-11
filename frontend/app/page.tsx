@@ -89,6 +89,13 @@ export default function LockFrameApp() {
         setActiveAsset(proj.assets[0]);
         loadRevisions(proj.id);
         loadRig(proj.assets[0].id);
+        const cList = await getSegmentCandidates(proj.assets[0].id, [
+          { x: 300, y: 300, is_positive: true },
+        ]);
+        if (cList.length > 0) {
+          setCandidates(cList);
+          setSelectedCandidate(cList[0]);
+        }
       }
     } catch (e) {
       console.warn("Init fallback", e);
@@ -144,6 +151,14 @@ export default function LockFrameApp() {
         setActiveAsset(proj.assets[0]);
         loadRevisions(proj.id);
         loadRig(proj.assets[0].id);
+        const cList = await getSegmentCandidates(proj.assets[0].id, [
+          { x: 300, y: 300, is_positive: true },
+        ]);
+        if (cList.length > 0) {
+          setCandidates(cList);
+          setSelectedCandidate(cList[0]);
+        }
+        setActiveTab(2); // Automatically proceed to Tab 2 with the generated artwork!
       }
     } catch (e) {
       console.error(e);

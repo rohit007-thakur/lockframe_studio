@@ -56,8 +56,19 @@ export default function PenLockTab({
   const [showHeatmapOverlay, setShowHeatmapOverlay] = useState(false);
   const [sliderPosition, setSliderPosition] = useState(100); // 100 = full new, 0 = full original
   const [copiedHash, setCopiedHash] = useState(false);
+  const [clickPos, setClickPos] = useState<{ x: number; y: number } | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleCanvasContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const pctX = ((e.clientX - rect.left) / rect.width) * 100;
+      const pctY = ((e.clientY - rect.top) / rect.height) * 100;
+      setClickPos({ x: pctX, y: pctY });
+    }
+    onCanvasClick(e);
+  };
 
   const handleCopyHash = () => {
     const hash =
@@ -269,7 +280,7 @@ export default function PenLockTab({
             {/* Artwork Canvas Container */}
             <div
               ref={containerRef}
-              onClick={onCanvasClick}
+              onClick={handleCanvasContainerClick}
               className="relative w-full aspect-square rounded-xl overflow-hidden bg-black border border-studioBorder cursor-crosshair select-none group"
             >
               {activeAsset ? (
@@ -292,6 +303,14 @@ export default function PenLockTab({
                       className="absolute inset-0 w-full h-full object-contain"
                     />
                   </div>
+
+                  {/* Click Ripple Indicator */}
+                  {clickPos && (
+                    <div
+                      className="absolute w-6 h-6 -ml-3 -mt-3 rounded-full border-2 border-accentCyan bg-accentCyan/30 animate-ping pointer-events-none z-10"
+                      style={{ left: `${clickPos.x}%`, top: `${clickPos.y}%` }}
+                    />
+                  )}
 
                   {/* Slider divider line if slider is active */}
                   {sliderPosition < 100 && (

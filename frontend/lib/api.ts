@@ -79,7 +79,7 @@ export interface RigData {
   bones: RigBone[];
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = typeof window !== "undefined" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000");
 
 // High-fidelity pre-cached Hero Character demo data
 export const HERO_DEMO_PROJECT: Project = {

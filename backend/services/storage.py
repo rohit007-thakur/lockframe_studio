@@ -55,28 +55,26 @@ def save_image_file(
     
     rel_path = f"{category}/{filename}"
     
-    # Optional Cloud Upload to Supabase Storage if connected
+    # Optional Cloud Upload to Supabase Storage in background thread
     if supabase_client:
-        try:
-            with open(full_path, "rb") as f:
-                supabase_client.storage.from_(SUPABASE_BUCKET).upload(
-                    file=f.read(),
-                    path=rel_path,
-                    file_options={"content-type": "image/png", "upsert": "true"}
-                )
-        except Exception as e:
-            logger.warning(f"Supabase upload failed for {rel_path}: {e}")
+        import threading
+        def _bg_upload(disk_path, cloud_path):
+            try:
+                with open(disk_path, "rb") as f:
+                    supabase_client.storage.from_(SUPABASE_BUCKET).upload(
+                        file=f.read(),
+                        path=cloud_path,
+                        file_options={"content-type": "image/png", "upsert": "true"}
+                    )
+            except Exception as e:
+                logger.warning(f"Supabase background upload notice: {e}")
+        threading.Thread(target=_bg_upload, args=(full_path, rel_path), daemon=True).start()
 
     return rel_path, full_path
 
 def get_image_url(rel_path: str) -> str:
     """Constructs a frontend-accessible URL for a stored asset."""
-    # If Supabase is active, return public URL
-    if supabase_client:
-        try:
-            return supabase_client.storage.from_(SUPABASE_BUCKET).get_public_url(rel_path)
-        except Exception:
-            pass
-    # Otherwise return local API mount URL
-    clean_path = rel_path.replace("\\", "/")
+    if rel_path.startswith("http"):
+        return rel_path
+    clean_path = rel_path.replace("\\", "/").lstrip("/")
     return f"/storage/{clean_path}"
