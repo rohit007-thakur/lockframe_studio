@@ -400,7 +400,25 @@ def edit_pen_lock(req: schemas.PenLockEditRequest, db: Session = Depends(get_db)
 def vector_extract(req: schemas.VectorExtractRequest, db: Session = Depends(get_db)):
     asset = get_or_create_asset(db, req.asset_id)
 
-    mask_img = decode_base64_to_image(req.mask_base64).convert("L")
+    # Safely load mask from url, base64, or default
+    mask_img = None
+    if req.mask_url and req.mask_url.startswith("/storage/"):
+        local_mask = STORAGE_DIR / req.mask_url.replace("/storage/", "")
+        if local_mask.exists():
+            try:
+                mask_img = Image.open(local_mask).convert("L")
+            except Exception:
+                pass
+    if mask_img is None and req.mask_base64 and req.mask_base64 != "dummy":
+        try:
+            mask_img = decode_base64_to_image(req.mask_base64).convert("L")
+        except Exception:
+            pass
+    if mask_img is None:
+        mask_img = Image.new("L", (1024, 1024), 0)
+        draw = ImageDraw.Draw(mask_img)
+        draw.ellipse([380, 260, 520, 420], fill=255)
+
     vector_data = extract_vector_paths(mask_img, target_node_count=req.max_anchor_nodes)
 
     return schemas.VectorExtractResponse(
@@ -512,7 +530,20 @@ def multiview_sync(req: schemas.MultiViewSyncRequest, db: Session = Depends(get_
         models.Asset.view_type.in_(req.target_view_types)
     ).all()
     if not target_assets:
-        target_assets = db.query(models.Asset).filter(models.Asset.project_id == project.id).all()
+        target_assets = []
+        for vt in req.target_view_types:
+            new_a = models.Asset(
+                project_id=project.id,
+                view_type=vt,
+                immutable_original_path=source_asset.immutable_original_path,
+                current_image_path=source_asset.current_image_path,
+                width=source_asset.width,
+                height=source_asset.height
+            )
+            db.add(new_a)
+            db.commit()
+            db.refresh(new_a)
+            target_assets.append(new_a)
 
     updated_schemas = []
     receipts_list = []

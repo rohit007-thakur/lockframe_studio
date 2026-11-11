@@ -91,8 +91,9 @@ class PenLockEditResponse(BaseModel):
 
 # Vector-as-ControlNet
 class VectorExtractRequest(BaseModel):
-    asset_id: str
-    mask_base64: str
+    asset_id: Optional[str] = None
+    mask_base64: Optional[str] = None
+    mask_url: Optional[str] = None
     max_anchor_nodes: int = 16
 
 class BezierAnchorNode(BaseModel):
