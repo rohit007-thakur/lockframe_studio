@@ -1,53 +1,31 @@
-# Environment and Secrets (CRITICAL: Never commit credentials)
-.env
-.env*.local
-!.env.example
-
-# Node.js & Next.js
+# Dependencies
 node_modules/
-frontend/node_modules/
-.next/
-frontend/.next/
-out/
-frontend/out/
-build/
-dist/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# Python & Virtual Environments
 __pycache__/
-backend/**/__pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-env/
 venv/
-.venv/
-ENV/
-*.egg-info/
-.pytest_cache/
+# Secrets & Env
+.env
+*.env
+backend/.env
+backend/.env.local
+frontend/.env.local
+frontend/.env.*.local
+*.zip
 
-# Databases
+# Builds
+.next/
+out/
+build/
+dist/
+
+# SQLite & local storage
 *.db
-*.sqlite
-*.sqlite3
-backend/*.db
+backend/storage/
+*.log
 
-# Local storage cache (Generated image assets)
-backend/storage/originals/*
-backend/storage/masks/*
-backend/storage/heatmaps/*
-backend/storage/revisions/*
-!backend/storage/**/.gitkeep
-
-# IDEs & OS
+# OS & Editor
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
-*.swp
-*.swo
